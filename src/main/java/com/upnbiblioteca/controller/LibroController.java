@@ -40,36 +40,42 @@ public class LibroController {
                 return "redirect:/libros/buscar";
             }
 
-            // Verificar si el libro es nuevo o existente
+            // Si es un libro nuevo
             if (libro.getId() == null) {
-                // Nuevo libro
+                // Validar duplicado por ISBN
                 if (libroService.existePorIsbn(libro.getIsbn())) {
                     redirectAttributes.addFlashAttribute("error", "El ISBN '" + libro.getIsbn() + "' ya está registrado.");
                     return "redirect:/libros/buscar";
                 }
+                // Validar duplicado por título
                 if (libroService.existePorTitulo(libro.getTitulo())) {
                     redirectAttributes.addFlashAttribute("error", "El título '" + libro.getTitulo() + "' ya está registrado.");
                     return "redirect:/libros/buscar";
                 }
+
                 libroService.guardarLibro(libro);
                 redirectAttributes.addFlashAttribute("success", "Libro creado correctamente.");
             } else {
-                // Actualizar libro existente
+                // Si es una edición
                 Libro existente = libroService.obtenerLibroPorId(libro.getId());
                 if (existente == null) {
                     redirectAttributes.addFlashAttribute("error", "El libro que intentas editar no existe.");
                     return "redirect:/libros/buscar";
                 }
-                // Verificar duplicados solo si se está cambiando el título o ISBN
+
+                // Validar duplicados solo si cambia el ISBN y no pertenece al mismo libro
                 if (!existente.getIsbn().equals(libro.getIsbn()) && libroService.existePorIsbn(libro.getIsbn())) {
                     redirectAttributes.addFlashAttribute("error", "El ISBN '" + libro.getIsbn() + "' ya está registrado.");
                     return "redirect:/libros/buscar";
                 }
+
+                // Validar duplicado solo si cambia el título y no pertenece al mismo libro
                 if (!existente.getTitulo().equals(libro.getTitulo()) && libroService.existePorTitulo(libro.getTitulo())) {
                     redirectAttributes.addFlashAttribute("error", "El título '" + libro.getTitulo() + "' ya está registrado.");
                     return "redirect:/libros/buscar";
                 }
-                // Actualizar los campos del libro existente
+
+                // Actualizar datos
                 existente.setTitulo(libro.getTitulo());
                 existente.setAutor(libro.getAutor());
                 existente.setIsbn(libro.getIsbn());
